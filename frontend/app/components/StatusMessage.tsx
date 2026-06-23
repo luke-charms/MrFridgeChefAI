@@ -5,9 +5,19 @@ interface Props {
 
 export default function StatusMessage({ phase, error }: Props) {
   if (error) {
+    const isOverloaded =
+      error.includes("503") || error.includes("high demand") || error.includes("UNAVAILABLE");
+
     return (
       <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-        {error}
+        {isOverloaded ? (
+          <>
+            <strong>Gemini is overloaded right now.</strong> The backend retried
+            3 times and still failed. Please wait 10–15 seconds and try again.
+          </>
+        ) : (
+          error
+        )}
       </div>
     );
   }
@@ -15,7 +25,7 @@ export default function StatusMessage({ phase, error }: Props) {
   if (phase === "uploading") {
     return (
       <div className="text-sm text-gray-500 animate-pulse">
-        Scanning your fridge…
+        Scanning your fridge… (may take a few seconds)
       </div>
     );
   }

@@ -63,7 +63,10 @@ async def analyse_fridge(file: UploadFile = File(...)):
             detail=f"File too large. Maximum size is {MAX_FILE_SIZE_MB} MB.",
         )
 
-    ingredients = await extract_ingredients(image_bytes, file.content_type)
+    try:
+        ingredients = await extract_ingredients(image_bytes, file.content_type)
+    except RuntimeError as e:
+        raise HTTPException(status_code=503, detail=str(e))
 
     if not ingredients:
         raise HTTPException(
@@ -85,7 +88,11 @@ async def get_recipes(body: RecipesRequest):
     if body.count < 1 or body.count > 6:
         raise HTTPException(status_code=400, detail="count must be between 1 and 6.")
 
-    recipes = await generate_recipes(body.ingredients, body.count)
+    try:
+        recipes = await generate_recipes(body.ingredients, body.count)
+    except RuntimeError as e:
+        raise HTTPException(status_code=503, detail=str(e))
+    
     return RecipesResponse(recipes=recipes)
 
 

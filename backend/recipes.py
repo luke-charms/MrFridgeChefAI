@@ -1,11 +1,23 @@
 import json
+import re
+import asyncio
+import os
 from google import genai
 from google.genai import types
-from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
-from google.genai.errors import ServerError
+from dotenv import load_dotenv
+
+
+load_dotenv()
+
+api_key = os.getenv("GEMINI_API_KEY")
 
 # Automatically picks up GEMINI_API_KEY from your environment variables
-client = genai.Client()
+client = genai.Client(api_key=api_key)
+
+MODEL = "gemini-2.5-flash-lite"
+
+MAX_RETRIES = 4
+BASE_DELAY_SECONDS = 5
 
 RECIPE_PROMPT_TEMPLATE = """
 You are a creative but practical home chef. Given the following ingredients that
@@ -39,31 +51,50 @@ Respond with ONLY a valid JSON object in this exact shape:
 No extra text, no markdown fences — only the JSON object.
 """.strip()
 
-# This decorator will automatically retry the function if Google throws a 503 ServerError
-@retry(
-    stop=stop_after_attempt(3), # Retry up to 3 times
-    wait=wait_exponential(multiplier=1, min=2, max=10), # Wait 2s, then 4s...
-    retry=retry_if_exception_type(ServerError), # Only retry on server overloads
-    reraise=True
-)
-async def generate_recipes(ingredients: list[str], count: int = 3) -> list[dict]:
-    """
-    Take a list of ingredient strings and return a list of recipe dicts.
 
-    Gemini's response_mime_type forces valid JSON output every time,
-    so we never need to strip markdown fences or handle malformed prose.
+def _parse_retry_delay(error_str: str) -> float:
     """
+    Parse the retryDelay Google embeds in 429 responses (e.g. '54s').
+    Respecting this avoids wasting retries by hitting the API too early.
+    """
+    match = re.search(r"retryDelay['\"]:\s*['\"](\d+)s", error_str)
+    if match:
+        return float(match.group(1))
+    return BASE_DELAY_SECONDS
+
+
+async def generate_recipes(ingredients: list[str], count: int = 3) -> list[dict]:
     ingredient_list = "\n".join(f"- {item}" for item in ingredients)
     prompt = RECIPE_PROMPT_TEMPLATE.format(count=count, ingredients=ingredient_list)
 
-    # Migrated to client.models.generate_content using standard gemini-1.5-flash
-    response = client.models.generate_content(
-        model="gemini-2.5-flash",
-        contents=prompt,
-        config=types.GenerateContentConfig(
-            response_mime_type="application/json"
-        ),
-    )
+    last_error = None
+    for attempt in range(1, MAX_RETRIES + 1):
+        try:
+            response = client.models.generate_content(
+                model=MODEL,
+                contents=prompt,
+                config=types.GenerateContentConfig(
+                    response_mime_type="application/json"
+                ),
+            )
+            data = json.loads(response.text)
+            return data.get("recipes", [])
 
-    data = json.loads(response.text)
-    return data.get("recipes", [])
+        except Exception as e:
+            last_error = e
+            error_str = str(e)
+            is_retryable = "503" in error_str or "429" in error_str
+
+            if is_retryable and attempt < MAX_RETRIES:
+                delay = _parse_retry_delay(error_str)
+                print(
+                    f"[recipes] Gemini rate limit on attempt {attempt}/{MAX_RETRIES}. "
+                    f"Waiting {delay:.0f}s before retry..."
+                )
+                await asyncio.sleep(delay)
+            else:
+                break
+
+    raise RuntimeError(
+        f"Gemini recipe generation failed after {MAX_RETRIES} attempts: {last_error}"
+    )
