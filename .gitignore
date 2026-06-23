@@ -1,0 +1,18 @@
+# Python / Backend
+backend/venv/
+backend/__pycache__/
+backend/*.pyc
+
+# Environment Variables / Secrets (CRITICAL)
+backend/.env
+backend/.env.example
+frontend/.env.local
+.env
+
+# Next.js / Frontend Dependencies and Builds
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+
+# OS specific files
+.DS_Store
