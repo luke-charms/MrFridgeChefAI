@@ -20,7 +20,7 @@ BASE_DELAY_SECONDS = 5
 
 VISION_PROMPT = """
 You are a kitchen assistant. Carefully examine this fridge photo and identify every
-food item you can see. Be specific (e.g. "cherry tomatoes" not just "tomatoes").
+food item you can see. Only identify food items. Be specific (e.g. "cherry tomatoes" not just "tomatoes").
 Ignore condiment sachets, very small unlabelled items, or anything you are unsure about.
 
 Respond with ONLY a valid JSON object in this exact shape:

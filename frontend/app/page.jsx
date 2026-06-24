@@ -2,12 +2,14 @@
 
 import { useState, useCallback } from "react";
 import { analyseImage, fetchRecipes } from "./api-client";
+import ErrorBoundary from "./components/ErrorBoundary";
 import UploadZone from "./components/UploadZone";
 import IngredientList from "./components/IngredientList";
 import RecipeCard from "./components/RecipeCard";
+import RecipeSkeleton from "./components/RecipeSkeleton";
 import StatusMessage from "./components/StatusMessage";
 
-export default function Home() {
+function FridgeChefApp() {
   const [phase, setPhase] = useState("idle");
   const [preview, setPreview] = useState(null);
   const [ingredients, setIngredients] = useState([]);
@@ -32,20 +34,21 @@ export default function Home() {
     }
   }, []);
 
-  // Step 2 — user clicks "Generate" → call /recipes
-  const handleGenerate = useCallback(async () => {
+  // Step 2 — user clicks Generate → call /recipes with their edited list
+  // editedItems comes from IngredientList, which owns the local edits
+  const handleGenerate = useCallback(async (editedItems) => {
     setError(null);
     setPhase("generating");
 
     try {
-      const result = await fetchRecipes(ingredients);
+      const result = await fetchRecipes(editedItems);
       setRecipes(result);
       setPhase("results");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong.");
       setPhase("error");
     }
-  }, [ingredients]);
+  }, []);
 
   const handleReset = () => {
     setPhase("idle");
@@ -56,8 +59,8 @@ export default function Home() {
   };
 
   const isIdle = phase === "idle";
-  const showIngredients = phase === "ingredients" || phase === "generating" || phase === "results";
-  const showRecipes = phase === "results";
+  const showIngredients =
+    phase === "ingredients" || phase === "generating" || phase === "results";
   const isBusy = phase === "uploading" || phase === "generating";
 
   return (
@@ -100,10 +103,10 @@ export default function Home() {
           </div>
         )}
 
-        {/* Status banners */}
+        {/* Status banners and spinners */}
         <StatusMessage phase={phase} error={error} />
 
-        {/* Ingredient list + generate button */}
+        {/* Editable ingredient list */}
         {showIngredients && (
           <IngredientList
             ingredients={ingredients}
@@ -112,8 +115,9 @@ export default function Home() {
           />
         )}
 
-        {/* Recipe results */}
-        {showRecipes && (
+        {/* Skeleton while generating, real cards when done */}
+        {phase === "generating" && <RecipeSkeleton />}
+        {phase === "results" && (
           <section className="flex flex-col gap-6">
             <h2 className="text-xl font-bold text-gray-800">Recipes for you</h2>
             {recipes.map((recipe, i) => (
@@ -124,5 +128,15 @@ export default function Home() {
 
       </div>
     </main>
+  );
+}
+
+// Wrap the whole app in an error boundary so an unexpected crash shows
+// a friendly recovery screen instead of a blank white page
+export default function Home() {
+  return (
+    <ErrorBoundary>
+      <FridgeChefApp />
+    </ErrorBoundary>
   );
 }
