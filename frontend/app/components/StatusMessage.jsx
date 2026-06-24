@@ -1,9 +1,4 @@
-interface Props {
-  phase: string;
-  error: string | null;
-}
-
-export default function StatusMessage({ phase, error }: Props) {
+export default function StatusMessage({ phase, error }) {
   if (error) {
     const isOverloaded =
       error.includes("503") || error.includes("high demand") || error.includes("UNAVAILABLE");

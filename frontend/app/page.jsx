@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { AppPhase, Recipe } from "./types";
 import { analyseImage, fetchRecipes } from "./api-client";
 import UploadZone from "./components/UploadZone";
 import IngredientList from "./components/IngredientList";
@@ -9,16 +8,14 @@ import RecipeCard from "./components/RecipeCard";
 import StatusMessage from "./components/StatusMessage";
 
 export default function Home() {
-  const [phase, setPhase] = useState<AppPhase>("idle");
-  const [preview, setPreview] = useState<string | null>(null);
-  const [ingredients, setIngredients] = useState<string[]>([]);
-  const [recipes, setRecipes] = useState<Recipe[]>([]);
-  const [error, setError] = useState<string | null>(null);
+  const [phase, setPhase] = useState("idle");
+  const [preview, setPreview] = useState(null);
+  const [ingredients, setIngredients] = useState([]);
+  const [recipes, setRecipes] = useState([]);
+  const [error, setError] = useState(null);
 
-  // -------------------------------------------------------------------------
   // Step 1 — user drops a photo → call /analyse
-  // -------------------------------------------------------------------------
-  const handleFile = useCallback(async (file: File) => {
+  const handleFile = useCallback(async (file) => {
     setError(null);
     setPhase("uploading");
     setPreview(URL.createObjectURL(file));
@@ -35,9 +32,7 @@ export default function Home() {
     }
   }, []);
 
-  // -------------------------------------------------------------------------
   // Step 2 — user clicks "Generate" → call /recipes
-  // -------------------------------------------------------------------------
   const handleGenerate = useCallback(async () => {
     setError(null);
     setPhase("generating");
@@ -87,12 +82,12 @@ export default function Home() {
           )}
         </header>
 
-        {/* Upload zone — stays visible until generating/results */}
+        {/* Upload zone */}
         {(isIdle || phase === "uploading" || phase === "error") && (
           <UploadZone onFile={handleFile} disabled={isBusy} />
         )}
 
-        {/* Fridge photo thumbnail once uploaded */}
+        {/* Fridge photo thumbnail */}
         {preview && !isIdle && (
           <div className="flex items-center gap-4">
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -120,9 +115,7 @@ export default function Home() {
         {/* Recipe results */}
         {showRecipes && (
           <section className="flex flex-col gap-6">
-            <h2 className="text-xl font-bold text-gray-800">
-              Recipes for you
-            </h2>
+            <h2 className="text-xl font-bold text-gray-800">Recipes for you</h2>
             {recipes.map((recipe, i) => (
               <RecipeCard key={recipe.title} recipe={recipe} index={i} />
             ))}

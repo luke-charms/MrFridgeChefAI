@@ -1,16 +1,6 @@
 "use client";
 
-interface Props {
-  ingredients: string[];
-  onGenerate: () => void;
-  loading: boolean;
-}
-
-export default function IngredientList({
-  ingredients,
-  onGenerate,
-  loading,
-}: Props) {
+export default function IngredientList({ ingredients, onGenerate, loading }) {
   return (
     <div className="flex flex-col gap-6">
       <div>

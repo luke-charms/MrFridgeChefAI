@@ -1,11 +1,4 @@
-import { Recipe } from "../types";
-
-interface Props {
-  recipe: Recipe;
-  index: number;
-}
-
-export default function RecipeCard({ recipe, index }: Props) {
+export default function RecipeCard({ recipe, index }) {
   const totalMinutes = recipe.prep_time_minutes + recipe.cook_time_minutes;
 
   return (

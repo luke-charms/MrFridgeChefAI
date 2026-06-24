@@ -3,16 +3,11 @@
 import { useCallback } from "react";
 import { useDropzone } from "react-dropzone";
 
-interface Props {
-  onFile: (file: File) => void;
-  disabled?: boolean;
-}
-
 const ACCEPTED_TYPES = { "image/jpeg": [], "image/png": [], "image/webp": [] };
 
-export default function UploadZone({ onFile, disabled }: Props) {
+export default function UploadZone({ onFile, disabled }) {
   const onDrop = useCallback(
-    (accepted: File[]) => {
+    (accepted) => {
       if (accepted[0]) onFile(accepted[0]);
     },
     [onFile]
@@ -22,7 +17,7 @@ export default function UploadZone({ onFile, disabled }: Props) {
     onDrop,
     accept: ACCEPTED_TYPES,
     maxFiles: 1,
-    maxSize: 10 * 1024 * 1024, // 10 MB — matches backend limit
+    maxSize: 10 * 1024 * 1024,
     disabled,
   });
 

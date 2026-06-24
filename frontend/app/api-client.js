@@ -1,8 +1,6 @@
-import { Recipe } from "./types";
-
 const BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
-export async function analyseImage(file: File): Promise<string[]> {
+export async function analyseImage(file) {
   const form = new FormData();
   form.append("file", file);
 
@@ -14,13 +12,10 @@ export async function analyseImage(file: File): Promise<string[]> {
   }
 
   const data = await res.json();
-  return data.ingredients as string[];
+  return data.ingredients;
 }
 
-export async function fetchRecipes(
-  ingredients: string[],
-  count = 3
-): Promise<Recipe[]> {
+export async function fetchRecipes(ingredients, count = 3) {
   const res = await fetch(`${BASE}/recipes`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -33,5 +28,5 @@ export async function fetchRecipes(
   }
 
   const data = await res.json();
-  return data.recipes as Recipe[];
+  return data.recipes;
 }
