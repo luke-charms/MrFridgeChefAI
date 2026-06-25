@@ -27,28 +27,37 @@ Prerequisites
 ### Setup backend
 
 1. Install requirements
+
+```bash
 cd backend
 python -m venv venv
 source venv/bin/activate  # On Windows use `venv\Scripts\activate`
 pip install -r requirements.txt
+```
 
 2. Create a .env file in the backend directory and add your Gemini API key:
 GEMINI_API_KEY="your_api_key_here"
 
 3. Start the FastAPI server:
+```bash
 uvicorn main:app --reload --port 8000
+```
 
 ### Setup frontend
 
 1. Install dependencies
+```bash
 cd frontend
 npm install
+```
 
 2. Create a .env.local file in the frontend directory to point to your backend:
 NEXT_PUBLIC_API_URL="http://localhost:8000"
 
 3. Start the Next.js development server:
+```bash
 npm run dev
+```
 
 ## License
 
