@@ -2,32 +2,35 @@
 
 import { Component } from "react";
 
-// Error boundaries must be class components — React's error boundary API
-// (componentDidCatch / getDerivedStateFromError) has no hooks equivalent.
-// This is the one place in the project where a class component is correct.
+// React Error Boundaries must be class components because there is currently
+// no Hook equivalent for componentDidCatch or getDerivedStateFromError.
+// This component catches unhandled errors in its child component tree.
 export default class ErrorBoundary extends Component {
   constructor(props) {
     super(props);
+    // Initialize state to track whether an error has occurred and the error message
     this.state = { hasError: false, message: null };
   }
 
+  // This method is called when a child component throws an error
   static getDerivedStateFromError(error) {
-    // Called during render when a child throws. Update state so the next
-    // render shows the fallback UI instead of the broken tree.
+    // Update state to indicate an error has occurred and store the error message
     return { hasError: true, message: error?.message ?? "Unknown error" };
   }
 
+  // This method is called after an error has been thrown in a child component
   componentDidCatch(error, info) {
-    // Good place to send to an error monitoring service (e.g. Sentry) in production
     console.error("[ErrorBoundary]", error, info.componentStack);
   }
 
+  // Reset the error state to allow the user to try again
   handleReset() {
     this.setState({ hasError: false, message: null });
   }
 
   render() {
     if (this.state.hasError) {
+      // Render a fallback UI when an error has occurred
       return (
         <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
           <div className="max-w-md w-full bg-white rounded-2xl border border-gray-200 shadow-sm p-8 flex flex-col gap-4 text-center">
@@ -55,6 +58,7 @@ export default class ErrorBoundary extends Component {
       );
     }
 
+    // If no error has occurred, render the child components normally
     return this.props.children;
   }
 }

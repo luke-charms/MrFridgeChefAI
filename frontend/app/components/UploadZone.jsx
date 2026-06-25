@@ -3,22 +3,22 @@
 import { useCallback, useState } from "react";
 import { useDropzone } from "react-dropzone";
 
+// Accepted file types and max size must match backend validation
 const ACCEPTED_TYPES = { "image/jpeg": [], "image/png": [], "image/webp": [] };
 const MAX_SIZE_BYTES = 10 * 1024 * 1024; // 10 MB — must match backend
 
 export default function UploadZone({ onFile, disabled }) {
-  // Rejection reason is local to this component — it's display-only feedback,
-  // not application state, so it doesn't need to live in page.jsx
+  // State to hold the rejection message, if any
   const [rejection, setRejection] = useState(null);
 
+  // Callback for handling file drops
   const onDrop = useCallback(
     (acceptedFiles, rejectedFiles) => {
-      // Clear any previous rejection message on every new drop attempt
+      // Clear any previous rejection message on a new drop attempt
       setRejection(null);
 
       if (rejectedFiles.length > 0) {
-        // react-dropzone gives us structured error codes — map them to
-        // human-readable messages rather than exposing raw error strings
+        // Get the error code from the first rejected file
         const code = rejectedFiles[0].errors[0]?.code;
         const messages = {
           "file-invalid-type": "Only JPEG, PNG, or WebP images are accepted.",
@@ -29,6 +29,7 @@ export default function UploadZone({ onFile, disabled }) {
         return;
       }
 
+      // If a file is accepted, call the onFile callback with the first accepted file
       if (acceptedFiles[0]) {
         onFile(acceptedFiles[0]);
       }
@@ -36,6 +37,7 @@ export default function UploadZone({ onFile, disabled }) {
     [onFile]
   );
 
+  // Set up the dropzone with the specified options
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: ACCEPTED_TYPES,
@@ -46,6 +48,7 @@ export default function UploadZone({ onFile, disabled }) {
 
   return (
     <div className="flex flex-col gap-3">
+      {/* getRootProps connects this div to the drag-and-drop events */}
       <div
         {...getRootProps()}
         className={`
@@ -71,8 +74,8 @@ export default function UploadZone({ onFile, disabled }) {
         <p className="text-xs text-gray-400">JPEG, PNG, or WebP · max 10 MB</p>
       </div>
 
-      {/* Rejection message sits below the zone, not inside it, so it
-          doesn't shift the layout when it appears/disappears */}
+      {/* The rejection message is rendered outside the drop zone to prevent
+          the main upload box from jumping or resizing when an error occurs */}
       {rejection && (
         <p className="text-sm text-red-600 px-1">{rejection}</p>
       )}

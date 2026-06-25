@@ -1,31 +1,33 @@
 import { useEffect, useState } from "react";
 
 function parseRetryDelay(errorStr) {
-  // Gemini embeds a retryDelay like '54s' in the 429 body.
-  // Extract it so we can show an accurate countdown rather than
-  // a vague "please wait" message.
+  // The backend forwards the Gemini API's 'retryDelay' string.
+  // We use regex to extract the number so we can build a live countdown timer.
   const match = errorStr?.match(/retryDelay['"]\s*:\s*['"](\d+)s/);
   return match ? parseInt(match[1], 10) : null;
 }
 
+// Local component to handle the countdown timer state independently
 function RetryCountdown({ seconds }) {
   const [remaining, setRemaining] = useState(seconds);
 
   useEffect(() => {
-    // Reset if a new delay comes in (e.g. user retried and got another 429)
+    // Reset the countdown if the parent component re-renders with a new retry delay
     setRemaining(seconds);
     if (seconds <= 0) return;
 
+    // Start a 1-second interval countdown timer that counts down remaining time
     const interval = setInterval(() => {
       setRemaining((prev) => {
         if (prev <= 1) {
           clearInterval(interval);
-          return 0;
+          return 0; // Stop at 0
         }
         return prev - 1;
       });
     }, 1000);
 
+    // Cleanup the interval on unmount or when seconds change
     return () => clearInterval(interval);
   }, [seconds]);
 
@@ -42,20 +44,22 @@ function RetryCountdown({ seconds }) {
 }
 
 export default function StatusMessage({ phase, error }) {
+  // Handle error states first, as they take precedence over other phases
   if (error) {
     const retryDelay = parseRetryDelay(error);
+    // Check for rate limit errors based on known error messages
     const isRateLimit =
       error.includes("429") ||
       error.includes("RESOURCE_EXHAUSTED") ||
       error.includes("high demand") ||
       error.includes("UNAVAILABLE");
 
-    // If the backend exhausted all retries and is giving up, show a countdown
-    // only if Gemini told us how long to wait — otherwise show a static message
+      // If we have a retry delay, show the countdown timer; otherwise, show a static message
     if (isRateLimit && retryDelay) {
       return <RetryCountdown seconds={retryDelay} />;
     }
 
+    // If we have a rate limit error without a retry delay, show a static message
     if (isRateLimit) {
       return (
         <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
@@ -65,6 +69,7 @@ export default function StatusMessage({ phase, error }) {
       );
     }
 
+    // For other errors, show the error message directly
     return (
       <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
         {error}
@@ -72,6 +77,7 @@ export default function StatusMessage({ phase, error }) {
     );
   }
 
+  // Handle the "uploading" and "generating" phases with a spinner and message
   if (phase === "uploading") {
     return (
       <div className="flex items-center gap-3 text-sm text-gray-500">
@@ -90,10 +96,11 @@ export default function StatusMessage({ phase, error }) {
     );
   }
 
+  // If there's no error and we're not in a special phase, render nothing
   return null;
 }
 
-// Inline spinner — no extra dependency needed, pure CSS animation via Tailwind
+// Local component for the spinner animation
 function Spinner() {
   return (
     <span

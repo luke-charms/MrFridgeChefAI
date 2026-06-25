@@ -3,25 +3,29 @@
 import { useState } from "react";
 
 export default function IngredientList({ ingredients, onGenerate, loading }) {
-  // Local copy of the ingredient list so edits don't mutate the parent's
-  // state — the edited list is passed up only when the user clicks Generate.
+  // Local state for the list of ingredients and the input field
   const [items, setItems] = useState(ingredients);
   const [inputValue, setInputValue] = useState("");
 
   function removeItem(indexToRemove) {
+    // Remove the item at the specified index
     setItems((prev) => prev.filter((_, i) => i !== indexToRemove));
   }
 
   function addItem() {
     const trimmed = inputValue.trim();
     if (!trimmed) return;
-    // Avoid exact duplicates (case-insensitive)
+
+    // Avoid exact duplicates
     const alreadyExists = items.some(
       (item) => item.toLowerCase() === trimmed.toLowerCase()
     );
+
     if (!alreadyExists) {
       setItems((prev) => [...prev, trimmed]);
     }
+
+    // Clear the input field after adding
     setInputValue("");
   }
 
@@ -44,7 +48,7 @@ export default function IngredientList({ ingredients, onGenerate, loading }) {
           </span>
         </div>
 
-        {/* Ingredient chips — each has an × button to remove it */}
+        {/* Map over the local items array to render interactive ingredient chips */}
         <ul className="flex flex-wrap gap-2 mb-4">
           {items.map((item, i) => (
             <li
@@ -69,7 +73,7 @@ export default function IngredientList({ ingredients, onGenerate, loading }) {
           )}
         </ul>
 
-        {/* Add ingredient input */}
+        {/* Add ingredient input manually */}
         <div className="flex gap-2">
           <input
             type="text"
@@ -98,6 +102,7 @@ export default function IngredientList({ ingredients, onGenerate, loading }) {
         </div>
       </div>
 
+        {/* Pass the edited local list back to the parent to trigger recipe generation */}
       <button
         onClick={() => onGenerate(items)}
         disabled={loading || isEmpty}

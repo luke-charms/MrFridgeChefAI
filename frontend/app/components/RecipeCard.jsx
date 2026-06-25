@@ -1,4 +1,5 @@
 export default function RecipeCard({ recipe, index }) {
+  // Calculate total time
   const totalMinutes = recipe.prep_time_minutes + recipe.cook_time_minutes;
 
   return (
@@ -13,6 +14,7 @@ export default function RecipeCard({ recipe, index }) {
             {recipe.title}
           </h3>
         </div>
+        {/* Visual number indicator */}
         <span className="shrink-0 w-9 h-9 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700 font-bold text-sm">
           {index + 1}
         </span>
@@ -20,8 +22,8 @@ export default function RecipeCard({ recipe, index }) {
 
       {/* Meta row */}
       <div className="flex gap-4 text-sm text-gray-500">
-        <span>⏱ {totalMinutes} min total</span>
-        <span>🍽 Serves {recipe.servings}</span>
+        <span>{totalMinutes} min total</span>
+        <span><em>(Serves {recipe.servings})</em></span>
       </div>
 
       {/* Ingredients used */}
@@ -59,7 +61,7 @@ export default function RecipeCard({ recipe, index }) {
       {/* Tip */}
       {recipe.tip && (
         <p className="text-sm text-gray-500 bg-amber-50 border border-amber-200 rounded-lg px-4 py-3">
-          💡 {recipe.tip}
+          <strong>Hint:</strong> {recipe.tip}
         </p>
       )}
     </article>

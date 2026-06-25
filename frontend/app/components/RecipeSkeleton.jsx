@@ -1,6 +1,4 @@
-// A single shimmer card that mirrors the shape of a real RecipeCard.
-// Using a fixed structure (not mapping over data) means the skeleton
-// layout is stable and won't shift when real content arrives.
+// Skeleton component for recipe cards while loading
 function SkeletonCard() {
   return (
     <div className="bg-white border border-gray-200 rounded-2xl p-6 flex flex-col gap-4 shadow-sm">

@@ -1,5 +1,6 @@
 @import "tailwindcss";
 
+/* Global styles for the application, including CSS variables for theming and basic body styling. */
 :root {
   --background: #ffffff;
   --foreground: #171717;
